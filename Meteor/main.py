@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from src.api import MeteoraAPI
 from src.models import Balance
 
