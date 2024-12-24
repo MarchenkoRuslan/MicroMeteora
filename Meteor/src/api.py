@@ -51,46 +51,30 @@ class MeteoraAPI:
         wait=wait_exponential(multiplier=1, min=4, max=10),
         retry_error_callback=lambda retry_state: None
     )
-    async def get_balance(self, wallet_address: str) -> Balance:
-        """Получение баланса отдельного кошелька"""
-        async with self.semaphore:  # используем семафор для ограничения
-            try:
-                response = await self.client.get(
-                    f"{self.base_url}/wallets/{wallet_address}/balance",
-                    headers=self.headers
-                )
-                response.raise_for_status()
-                return Balance(**response.json())
-            except Exception as e:
-                logger.error(f"Error getting balance for {wallet_address}: {e}")
-                raise
+    async def get_balance(self, address: str) -> dict:
+        # Заглушка для демонстрации
+        return {
+            "address": address,
+            "amount": 100.0,
+            "currency": "ETH"
+        }
 
-    async def check_transaction(self, tx_id: str) -> Transaction:
-        """Проверка статуса транзакции"""
-        try:
-            response = await self.client.get(
-                f"{self.base_url}/transactions/{tx_id}",
-                headers=self.headers
-            )
-            response.raise_for_status()
-            return Transaction(**response.json())
-        except Exception as e:
-            logger.error(f"Error checking transaction {tx_id}: {str(e)}")
-            raise
+    async def check_transaction(self, tx_id: str) -> dict:
+        # Заглушка для демонстрации
+        return {
+            "tx_id": tx_id,
+            "status": "completed",
+            "amount": 1.0,
+            "from_address": "0x123",
+            "to_address": "0x456"
+        }
 
-    async def update_criteria(self, criteria: CriteriaUpdate) -> dict:
-        """Обновление критериев поиска"""
-        try:
-            response = await self.client.post(
-                f"{self.base_url}/criteria/update",
-                headers=self.headers,
-                json=criteria.dict()
-            )
-            response.raise_for_status()
-            return response.json()
-        except Exception as e:
-            logger.error(f"Error updating criteria: {str(e)}")
-            raise
+    async def update_criteria(self, criteria) -> dict:
+        # Заглушка для демонстрации
+        return {
+            "status": "updated",
+            "criteria_id": criteria.criteria_id
+        }
 
     async def get_pool_state(self, pool_id: str) -> PoolState:
         """Получение текущего состояния пула"""

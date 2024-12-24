@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 from decimal import Decimal
 
-from src.main import app
+from Meteor.main import app
 from src.models import Balance, Transaction, CriteriaUpdate
 from src.api import MeteoraAPI
 

@@ -2,9 +2,9 @@ from fastapi import FastAPI, HTTPException, Depends
 from typing import List
 import logging
 
-from .api import MeteoraAPI
-from .models import Balance, Transaction, CriteriaUpdate
-from .config import settings
+from .src.api import MeteoraAPI
+from .src.models import Balance, Transaction, CriteriaUpdate
+from .src.config import settings
 
 # Настройка логирования
 logging.basicConfig(level=settings.LOG_LEVEL)
