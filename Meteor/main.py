@@ -1,45 +1,23 @@
-from fastapi import FastAPI, HTTPException, Depends
-from typing import List
-import logging
+from fastapi import FastAPI
+from src.api import MeteoraAPI
+from src.models import Balance
 
-from .src.api import MeteoraAPI
-from .src.models import Balance, Transaction, CriteriaUpdate
-from .src.config import settings
-
-# Настройка логирования
-logging.basicConfig(level=settings.LOG_LEVEL)
-logger = logging.getLogger(__name__)
-
-app = FastAPI(title="Meteora Service API")
-meteora_api = MeteoraAPI()
+# Важно: определяем app как глобальную переменную
+app = FastAPI(
+    title="Meteor API",
+    description="API for Meteor service",
+    version="1.0.0"
+)
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
-@app.get("/wallet/{address}/balance", response_model=Balance)
+@app.get("/wallet/{address}/balance")
 async def get_wallet_balance(address: str):
+    api = MeteoraAPI()
     try:
-        balance = await meteora_api.get_balance(address)
+        balance = await api.get_balance(address)
         return balance
-    except Exception as e:
-        logger.error(f"Error getting balance for wallet {address}: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/transaction/{tx_id}", response_model=Transaction)
-async def check_transaction(tx_id: str):
-    try:
-        transaction = await meteora_api.check_transaction(tx_id)
-        return transaction
-    except Exception as e:
-        logger.error(f"Error checking transaction {tx_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/criteria/update")
-async def update_criteria(criteria: CriteriaUpdate):
-    try:
-        result = await meteora_api.update_criteria(criteria)
-        return result
-    except Exception as e:
-        logger.error(f"Error updating criteria: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e)) 
+    finally:
+        await api.close() 
