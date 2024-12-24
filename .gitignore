@@ -1,0 +1,48 @@
+# Виртуальное окружение
+venv/
+env/
+.env
+
+# Python кэш
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Дистрибутивы / пакеты
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+bin/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# Логи и базы данных
+*.log
+*.sqlite
+*.db
+
+# IDE файлы
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Локальные настройки
+.env.local
+.env.*.local
+
+# Coverage отчеты
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover 

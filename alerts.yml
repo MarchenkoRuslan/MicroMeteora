@@ -1,0 +1,8 @@
+groups:
+  - name: meteora
+    rules:
+      - alert: HighErrorRate
+        expr: rate(meteora_api_requests_total{status="error"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning 
