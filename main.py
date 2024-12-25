@@ -2,15 +2,22 @@ from fastapi import FastAPI, HTTPException, Depends
 from typing import List
 import logging
 
-from Meteor.src.api import MeteoraAPI
-from Meteor.src.models import Balance, Transaction, CriteriaUpdate
-from Meteor.src.config import settings
+from src.api import MeteoraAPI
+from src.models import Balance, Transaction, CriteriaUpdate
+from src.config import settings
 
 # Настройка логирования
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Meteora Service API")
+# Инициализация FastAPI с метаданными
+app = FastAPI(
+    title="Meteora Service API",
+    description="API for interacting with Meteora liquidity pools",
+    version="1.0.0"
+)
+
+# Создаем единственный экземпляр API
 meteora_api = MeteoraAPI()
 
 @app.get("/health")
@@ -42,4 +49,9 @@ async def update_criteria(criteria: CriteriaUpdate):
         return result
     except Exception as e:
         logger.error(f"Error updating criteria: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Добавляем обработчик завершения для корректного закрытия соединений
+@app.on_event("shutdown")
+async def shutdown_event():
+    await meteora_api.close() 
