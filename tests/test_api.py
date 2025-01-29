@@ -3,8 +3,8 @@ from httpx import AsyncClient
 from src.models import Balance
 from main import app
 
-# Реальный адрес пула из их SDK
-TEST_POOL_ADDRESS = "DLMMMg9ekmEP8HhEWpRh4dWBrPgYUkR4FkE6UF1bVpWy"
+# Используем актуальный адрес пула из документации
+TEST_POOL_ADDRESS = "HQZGqyZxpyZa5GGFH5qVCEfdYFxKEt3bQwBxcHrYGpJX"
 
 @pytest.mark.asyncio
 async def test_health_check():
