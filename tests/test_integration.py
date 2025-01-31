@@ -1,53 +1,60 @@
 import pytest
-from src.api import MeteoraAPI
-from src.models import LiquidityRange, Balance
+from fastapi.testclient import TestClient
+from src.main import app
 
-class TestMeteoraIntegration:
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_real_api_connection(self):
-        api = MeteoraAPI()
-        try:
-            pools = await api.get_pools()
-            assert pools is not None
-            assert isinstance(pools, list)
-            
-            if len(pools) > 0:  # Проверяем только если есть пулы
-                pool = pools[0]
-                # Проверяем основные поля, которые должны быть в ответе Meteora
-                assert 'address' in pool
-                assert 'token0' in pool
-                assert 'token1' in pool  # Добавили проверку второго токена
-        finally:
-            await api.close()
+client = TestClient(app)
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_pool_balance(self):
-        api = MeteoraAPI()
-        try:
-            # Получаем список пулов
-            pools = await api.get_pools()
-            if pools and len(pools) > 0:
-                # Берем первый пул для теста
-                test_pool = pools[0]
-                balance = await api.get_balance(test_pool['address'])
-                
-                assert isinstance(balance, Balance)
-                assert balance.address == test_pool['address']
-                assert balance.amount is not None
-                assert balance.token_address is not None
-        finally:
-            await api.close()
+def test_get_pools():
+    """Test getting quote from Jupiter"""
+    response = client.get("/pools")
+    assert response.status_code == 200
+    data = response.json()
+    # Проверяем поля из Jupiter API quote
+    assert isinstance(data, dict)
+    assert 'inputMint' in data
+    assert 'outputMint' in data
+    assert 'outAmount' in data
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_liquidity_range(self):
-        # Тест для проверки модели LiquidityRange
-        liquidity_range = LiquidityRange()
-        assert liquidity_range.min_value == 0.0
-        assert liquidity_range.max_value == float('inf')
+def test_get_balance():
+    """Test getting token balance/price"""
+    # Тестируем с SOL
+    sol_address = "So11111111111111111111111111111111111111112"
+    response = client.get(f"/balance/{sol_address}")
+    assert response.status_code == 200
+    data = response.json()
+    print(f"Balance response: {data}")  # Для отладки
+    
+    # Проверяем основные поля
+    assert data["address"] == sol_address
+    assert isinstance(data["amount"], (int, float))
+    assert data["token_symbol"] is not None
+    assert data["decimals"] is not None
 
-        custom_range = LiquidityRange(min_value=1.0, max_value=100.0)
-        assert custom_range.min_value == 1.0
-        assert custom_range.max_value == 100.0 
+def test_get_balances():
+    """Test getting multiple token balances"""
+    addresses = [
+        "So11111111111111111111111111111111111111112",  # SOL
+        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # USDC
+    ]
+    response = client.post("/balances", json=addresses)
+    assert response.status_code == 200
+    data = response.json()
+    print(f"Balances response: {data}")  # Для отладки
+    
+    # Проверяем список балансов
+    assert isinstance(data, list)
+    assert len(data) == len(addresses)
+    
+    # Проверяем каждый баланс
+    for balance in data:
+        assert isinstance(balance, dict)
+        assert "address" in balance
+        assert "amount" in balance
+        assert "token_symbol" in balance
+        assert isinstance(balance["amount"], (int, float))
+
+def test_root():
+    """Test root endpoint"""
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"message": "Jupiter API Service"} 

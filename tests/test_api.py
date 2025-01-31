@@ -1,58 +1,43 @@
 import pytest
-from httpx import AsyncClient
-from src.models import Balance
-from main import app
+from src.api import JupiterAPI
 
-# Используем актуальный адрес пула из документации
-TEST_POOL_ADDRESS = "HQZGqyZxpyZa5GGFH5qVCEfdYFxKEt3bQwBxcHrYGpJX"
-
+# Убираем тесты Meteora, оставляем только Jupiter
 @pytest.mark.asyncio
-async def test_health_check():
-    """Test our service health endpoint"""
-    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
-        response = await client.get("/health")
-        assert response.status_code == 200
-        assert response.json() == {"status": "healthy"}
-
-@pytest.mark.asyncio
-async def test_get_pools():
-    """Test getting all pools from Meteora"""
-    from src.api import MeteoraAPI
-    api = MeteoraAPI()
+async def test_jupiter_get_pools():
+    api = JupiterAPI()
     try:
         pools = await api.get_pools()
-        print(f"Got pools: {pools[:2]}")  # Показываем первые 2 пула
+        print(f"Jupiter pools response: {pools}")
         assert pools is not None
-        assert len(pools) > 0
+        # Проверяем наличие ключевых полей в ответе
+        assert 'outAmount' in pools
+        assert 'priceImpactPct' in pools
     finally:
         await api.close()
 
 @pytest.mark.asyncio
-async def test_get_wallet_balance():
-    """Test getting single pool balance"""
-    from src.api import MeteoraAPI
-    api = MeteoraAPI()
+async def test_jupiter_get_balance():
+    api = JupiterAPI()
     try:
-        balance = await api.get_balance(TEST_POOL_ADDRESS)
-        print(f"Got balance: {balance}")
-        assert isinstance(balance, Balance)
-        assert balance.address == TEST_POOL_ADDRESS
+        # Используем адрес SOL токена
+        balance = await api.get_balance("So11111111111111111111111111111111111111112")
+        assert balance is not None
+        assert balance.amount > 0
+        assert balance.token_symbol == "SOL"
     finally:
         await api.close()
 
 @pytest.mark.asyncio
-async def test_batch_balance_scan():
-    """Test getting multiple pool balances"""
-    from src.api import MeteoraAPI
-    api = MeteoraAPI()
+async def test_jupiter_get_balances():
+    api = JupiterAPI()
+    addresses = [
+        "So11111111111111111111111111111111111111112",  # SOL
+        "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # USDC
+    ]
     try:
-        addresses = [
-            TEST_POOL_ADDRESS,
-            "7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm"  # Другой реальный пул
-        ]
         balances = await api.get_balances(addresses)
-        print(f"Got balances: {balances}")
-        assert len(balances) > 0
-        assert all(isinstance(b, Balance) for b in balances)
+        assert len(balances) == len(addresses)
+        for balance in balances:
+            assert balance.amount >= 0
     finally:
         await api.close() 

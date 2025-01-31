@@ -1,25 +1,25 @@
 # Jupiter API Service
 
-A microservice for interacting with Jupiter API v6, providing functionality for pool liquidity management and transaction monitoring.
+A microservice for interacting with Jupiter API v6, providing functionality for token swaps, price quotes, and transaction monitoring.
 
 ## Current Features
 
-- Pool liquidity management
-  - Pool state monitoring
-  - Balance tracking
+- Token price and quote management
+  - Real-time price quotes
+  - Token balance tracking
   - Transaction status monitoring
 - Asynchronous request processing
-- Automatic retry mechanism with exponential backoff
+- Automatic retry mechanism
 - Rate limiting and overload protection
 
 ## Requirements
 
 - Python 3.8+
-- Redis 6+
 - FastAPI
 - Pydantic
 - aiohttp
 - uvicorn
+- pytest (for testing)
 
 ## Quick Start
 
@@ -41,13 +41,15 @@ pip install -r requirements.txt
 ### Run Service
 
 ```bash
-uvicorn main:app --reload
+uvicorn src.main:app --reload
 ```
 
 ## API Endpoints
 
 - `GET /health` - Service health check
-- `GET /wallet/{address}/balance` - Get wallet balance
+- `GET /pools` - Get Jupiter pools and quotes
+- `GET /balance/{address}` - Get token balance/price
+- `POST /balances` - Get multiple token balances
 - `GET /transaction/{tx_id}` - Check transaction status
 - `POST /criteria/update` - Update criteria
 
@@ -55,19 +57,20 @@ uvicorn main:app --reload
 
 ### Project Structure
 ```
-Meteor/
+Jupiter/
 ├── src/
 │   ├── api.py           # Jupiter API client
 │   ├── models.py        # Pydantic models
 │   └── config.py        # Configuration
 ├── tests/
-│   └── test_api.py      # Tests
+│   ├── test_api.py      # Unit tests
+│   └── test_integration.py  # Integration tests
 └── main.py              # FastAPI application
 ```
 
 ### Running Tests
 ```bash
-pytest tests/
+pytest -v tests/
 ```
 
 ## License
